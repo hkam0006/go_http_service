@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/hkam0006/ecom-server/internal/routes/products"
+	"github.com/jackc/pgx/v5"
 )
 
 // Set up router
@@ -27,7 +28,7 @@ func (app *application) mount() http.Handler {
    		w.Write([]byte("all good"))
     })
 
-    r.Mount("/products", products.NewRouter())
+    r.Mount("/products", products.NewRouter(app.db))
 
     return r
 }
@@ -48,8 +49,7 @@ func (app *application) run(h http.Handler) error {
 
 type application struct {
 	config config
-	// logger
-	// db driver
+	db *pgx.Conn
 }
 
 type config struct {
