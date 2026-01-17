@@ -13,6 +13,7 @@ func NewRouter(db repo.DBTX) chi.Router {
 	h := NewHandler(s)
 
     r.Get("/", h.ListProducts)
+    r.Get("/{product_id}", h.GetProductById)
 
 	return r
 }
