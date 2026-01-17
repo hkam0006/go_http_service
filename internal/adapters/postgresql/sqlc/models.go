@@ -4,10 +4,35 @@
 
 package repo
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type Order struct {
+	ID        pgtype.UUID        `json:"id"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	Status    int16              `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type OrderItem struct {
+	ID        pgtype.UUID `json:"id"`
+	OrderID   pgtype.UUID `json:"order_id"`
+	ProductID int64       `json:"product_id"`
+	Quantity  int32       `json:"quantity"`
+}
+
 type Product struct {
-	ID           int64       `json:"id"`
-	Name         string      `json:"name"`
-	PriceInCents int32       `json:"price_in_cents"`
-	Quantity     int32       `json:"quantity"`
-	CreatedAt    interface{} `json:"created_at"`
+	ID           int64              `json:"id"`
+	Name         string             `json:"name"`
+	PriceInCents int32              `json:"price_in_cents"`
+	Quantity     int32              `json:"quantity"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type User struct {
+	ID        pgtype.UUID        `json:"id"`
+	FirstName string             `json:"first_name"`
+	LastName  string             `json:"last_name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }

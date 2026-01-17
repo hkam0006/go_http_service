@@ -55,5 +55,4 @@ func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Write(w, http.StatusAccepted, product)
-
 }
