@@ -8,6 +8,7 @@ import (
 	repo "github.com/hkam0006/ecom-server/internal/adapters/postgresql/sqlc"
 	"github.com/hkam0006/ecom-server/internal/json"
 	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type handler struct {
@@ -30,6 +31,15 @@ func (h *handler) AddUser (w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	req.Password = string(hashedPassword)
 
 	user, err := h.service.AddUser(r.Context(), req)
 

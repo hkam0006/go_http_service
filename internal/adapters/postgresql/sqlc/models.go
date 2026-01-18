@@ -35,6 +35,6 @@ type User struct {
 	FirstName string             `json:"first_name"`
 	LastName  string             `json:"last_name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	Password  pgtype.Text        `json:"password"`
-	Email     pgtype.Text        `json:"email"`
+	Password  string             `json:"password"`
+	Email     string             `json:"email"`
 }
