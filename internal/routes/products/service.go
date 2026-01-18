@@ -11,6 +11,7 @@ import (
 type Service interface {
 	ListProducts(ctx context.Context) ([]repo.Product, error)
 	GetProduct(ctx context.Context, id pgtype.UUID) (repo.Product, error)
+	DeleteProduct(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	CreateProduct(ctx context.Context, params repo.CreateProductParams) (repo.Product, error)
 }
 
@@ -28,6 +29,10 @@ func (s *svc) GetProduct(ctx context.Context, id pgtype.UUID) (repo.Product, err
 
 func (s *svc) CreateProduct(ctx context.Context, params repo.CreateProductParams) (repo.Product, error) {
 	return s.repo.CreateProduct(ctx, params)
+}
+
+func (s *svc) DeleteProduct (ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	return s.repo.DeleteProduct(ctx, id)
 }
 
 func NewService(repo repo.Querier) Service {

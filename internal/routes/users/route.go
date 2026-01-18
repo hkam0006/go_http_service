@@ -1,11 +1,10 @@
-package products
+package users
 
 import (
 	"github.com/go-chi/chi/v5"
 	repo "github.com/hkam0006/ecom-server/internal/adapters/postgresql/sqlc"
 )
 
-// Router for /products
 func NewRouter(db repo.DBTX) chi.Router {
 	r := chi.NewRouter()
 
@@ -13,10 +12,8 @@ func NewRouter(db repo.DBTX) chi.Router {
 	s := NewService(repo.New(db))
 	h := NewHandler(s, v)
 
-    r.Get("/", h.ListProducts)
-    r.Get("/{product_id}", h.GetProductById)
-    r.Post("/", h.AddProduct)
-    r.Delete("/{product_id}", h.DeleteProduct)
+	r.Post("/", h.AddUser)
+	r.Delete("/{user_id}", h.DeleteUser)
 
 	return r
 }

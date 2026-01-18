@@ -11,6 +11,46 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addUser = `-- name: AddUser :one
+INSERT INTO users (
+    first_name,
+    last_name,
+    email,
+    password
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4
+) RETURNING id, first_name, last_name, created_at, password, email
+`
+
+type AddUserParams struct {
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Email     pgtype.Text `json:"email"`
+	Password  pgtype.Text `json:"password"`
+}
+
+func (q *Queries) AddUser(ctx context.Context, arg AddUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, addUser,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.Password,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.CreatedAt,
+		&i.Password,
+		&i.Email,
+	)
+	return i, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (
     name,
@@ -40,6 +80,26 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const deleteProduct = `-- name: DeleteProduct :one
+DELETE FROM products WHERE id=$1 RETURNING id
+`
+
+func (q *Queries) DeleteProduct(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, deleteProduct, id)
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+DELETE FROM users WHERE id = $1 RETURNING id
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, deleteUser, id)
+	err := row.Scan(&id)
+	return id, err
 }
 
 const findProductsByID = `-- name: FindProductsByID :one

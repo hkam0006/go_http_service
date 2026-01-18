@@ -18,7 +18,7 @@ type Order struct {
 type OrderItem struct {
 	ID        pgtype.UUID `json:"id"`
 	OrderID   pgtype.UUID `json:"order_id"`
-	ProductID int64       `json:"product_id"`
+	ProductID pgtype.UUID `json:"product_id"`
 	Quantity  int32       `json:"quantity"`
 }
 
@@ -35,4 +35,6 @@ type User struct {
 	FirstName string             `json:"first_name"`
 	LastName  string             `json:"last_name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Password  pgtype.Text        `json:"password"`
+	Email     pgtype.Text        `json:"email"`
 }

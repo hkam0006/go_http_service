@@ -1,4 +1,4 @@
-package products
+package validate
 
 import (
 	"encoding/json"

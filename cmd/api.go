@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/hkam0006/ecom-server/internal/routes/products"
+	"github.com/hkam0006/ecom-server/internal/routes/users"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -29,6 +30,7 @@ func (app *application) mount() http.Handler {
     })
 
     r.Mount("/products", products.NewRouter(app.db))
+    r.Mount("/users", users.NewRouter(app.db))
 
     return r
 }

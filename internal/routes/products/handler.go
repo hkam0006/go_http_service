@@ -42,7 +42,7 @@ func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 
 	var pgUUID pgtype.UUID
 
-	if err := pgUUID.Scan(uuid); err != nil {
+	if err := h.validator.GetProductById(uuid, &pgUUID); err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -62,8 +62,8 @@ func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 func (h *handler) AddProduct(w http.ResponseWriter, r *http.Request) {
 	var req repo.CreateProductParams
 
-	if err := h.validator.Validate(r.Body, &req); err != nil {
-		log.Println(("Invalid Request Body"))
+	if err := h.validator.AddProduct(r.Body, &req); err != nil {
+		log.Println("Invalid Request Body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -77,4 +77,30 @@ func (h *handler) AddProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Write(w, http.StatusCreated, product)
+}
+
+func (h *handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "product_id")
+
+	var uuid pgtype.UUID
+
+	if err := h.validator.DeleteProduct(id, &uuid); err != nil {
+		log.Println("Invalid UUID URL Param")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	product_id, err := h.service.DeleteProduct(r.Context(), uuid)
+
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response.Write(w, http.StatusOK, struct{
+		ID pgtype.UUID
+	}{
+		ID: product_id,
+	})
 }
