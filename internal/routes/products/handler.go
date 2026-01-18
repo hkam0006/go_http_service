@@ -3,20 +3,23 @@ package products
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hkam0006/ecom-server/internal/json"
+	repo "github.com/hkam0006/ecom-server/internal/adapters/postgresql/sqlc"
+	response "github.com/hkam0006/ecom-server/internal/json"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Handle business logic here.
 type handler struct {
 	service Service // dependency
+	validator Validator
 }
 
-func NewHandler(service Service) *handler {
+func NewHandler(service Service, validator Validator) *handler {
 	return &handler{
 		service: service,
+		validator: validator,
 	}
 }
 
@@ -31,22 +34,21 @@ func (h *handler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 2. Return JSON in a HTTP response
-	json.Write(w, http.StatusOK, products)
+	response.Write(w, http.StatusOK, products)
 }
 
 func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	product_id_str := chi.URLParam(r, "product_id")
+	uuid := chi.URLParam(r, "product_id")
 
-	id, conv_err := strconv.ParseInt(product_id_str, 10, 64)
+	var pgUUID pgtype.UUID
 
-	if conv_err != nil {
-		log.Println("Converting error")
-		http.Error(w, conv_err.Error(), http.StatusInternalServerError)
+	if err := pgUUID.Scan(uuid); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	product, err := h.service.GetProduct(ctx, id)
+	product, err := h.service.GetProduct(r.Context(), pgUUID)
 
 	if err != nil {
 		log.Println(err)
@@ -54,5 +56,25 @@ func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.Write(w, http.StatusAccepted, product)
+	response.Write(w, http.StatusOK, product)
+}
+
+func (h *handler) AddProduct(w http.ResponseWriter, r *http.Request) {
+	var req repo.CreateProductParams
+
+	if err := h.validator.Validate(r.Body, &req); err != nil {
+		log.Println(("Invalid Request Body"))
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	product, err := h.service.CreateProduct(r.Context(), req)
+
+	if err != nil {
+		log.Println("Error ")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response.Write(w, http.StatusCreated, product)
 }

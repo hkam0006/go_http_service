@@ -1,7 +1,9 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS products (
-    id BIGSERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     price_in_cents INTEGER NOT NULL CHECK(price_in_cents >= 0),
     quantity INTEGER NOT NULL DEFAULT 0,

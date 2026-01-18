@@ -6,10 +6,13 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
-	FindProductsByID(ctx context.Context, id int64) (Product, error)
+	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	FindProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 }
 

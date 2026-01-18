@@ -7,7 +7,40 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createProduct = `-- name: CreateProduct :one
+INSERT INTO products (
+    name,
+    price_in_cents,
+    quantity
+) VALUES (
+    $1,
+    $2,
+    $3
+) RETURNING id, name, price_in_cents, quantity, created_at
+`
+
+type CreateProductParams struct {
+	Name         string `json:"name"`
+	PriceInCents int32  `json:"price_in_cents"`
+	Quantity     int32  `json:"quantity"`
+}
+
+func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
+	row := q.db.QueryRow(ctx, createProduct, arg.Name, arg.PriceInCents, arg.Quantity)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.PriceInCents,
+		&i.Quantity,
+		&i.CreatedAt,
+	)
+	return i, err
+}
 
 const findProductsByID = `-- name: FindProductsByID :one
 SELECT
@@ -18,7 +51,7 @@ WHERE
     id = $1
 `
 
-func (q *Queries) FindProductsByID(ctx context.Context, id int64) (Product, error) {
+func (q *Queries) FindProductsByID(ctx context.Context, id pgtype.UUID) (Product, error) {
 	row := q.db.QueryRow(ctx, findProductsByID, id)
 	var i Product
 	err := row.Scan(
