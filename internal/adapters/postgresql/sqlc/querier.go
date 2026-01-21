@@ -17,6 +17,7 @@ type Querier interface {
 	DeleteProduct(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	DeleteUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	FindProductsByID(ctx context.Context, id pgtype.UUID) (Product, error)
+	GetOrderById(ctx context.Context, id pgtype.UUID) (GetOrderByIdRow, error)
 	GetProductsByIds(ctx context.Context, dollar_1 []pgtype.UUID) ([]Product, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 	PlaceOrder(ctx context.Context, userID pgtype.UUID) (Order, error)

@@ -57,3 +57,32 @@ RETURNING *;
 
 -- name: GetProductsByIds :many
 SELECT * FROM products WHERE id = ANY($1::uuid[]);
+
+-- name: GetOrderById :one
+SELECT
+    o.*,
+    COALESCE(
+      jsonb_agg(
+        jsonb_build_object(
+          'product_id', oi.product_id,
+          'quantity', oi.quantity,
+          'product', p.name,
+          'original_price', p.price_in_cents
+        )
+      ) FILTER (WHERE oi.id IS NOT NULL),
+      '[]'::jsonb
+    ) AS order_items,
+    COALESCE(
+        SUM(oi.quantity * oi.price_per_product_in_cents),
+        0
+    )::int AS total_price_in_cents
+FROM
+    orders o
+LEFT JOIN
+    order_items oi ON oi.order_id = o.id
+LEFT JOIN
+    products p ON oi.product_id = p.id
+WHERE
+    o.id=$1
+GROUP BY
+    o.id;

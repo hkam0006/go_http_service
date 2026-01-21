@@ -166,6 +166,59 @@ func (q *Queries) FindProductsByID(ctx context.Context, id pgtype.UUID) (Product
 	return i, err
 }
 
+const getOrderById = `-- name: GetOrderById :one
+SELECT
+    o.id, o.user_id, o.status, o.created_at,
+    COALESCE(
+      jsonb_agg(
+        jsonb_build_object(
+          'product_id', oi.product_id,
+          'quantity', oi.quantity,
+          'product', p.name,
+          'original_price', p.price_in_cents
+        )
+      ) FILTER (WHERE oi.id IS NOT NULL),
+      '[]'::jsonb
+    ) AS order_items,
+    COALESCE(
+        SUM(oi.quantity * oi.price_per_product_in_cents),
+        0
+    )::int AS total_price_in_cents
+FROM
+    orders o
+LEFT JOIN
+    order_items oi ON oi.order_id = o.id
+LEFT JOIN
+    products p ON oi.product_id = p.id
+WHERE
+    o.id=$1
+GROUP BY
+    o.id
+`
+
+type GetOrderByIdRow struct {
+	ID                pgtype.UUID        `json:"id"`
+	UserID            pgtype.UUID        `json:"user_id"`
+	Status            int16              `json:"status"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	OrderItems        interface{}        `json:"order_items"`
+	TotalPriceInCents int32              `json:"total_price_in_cents"`
+}
+
+func (q *Queries) GetOrderById(ctx context.Context, id pgtype.UUID) (GetOrderByIdRow, error) {
+	row := q.db.QueryRow(ctx, getOrderById, id)
+	var i GetOrderByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.OrderItems,
+		&i.TotalPriceInCents,
+	)
+	return i, err
+}
+
 const getProductsByIds = `-- name: GetProductsByIds :many
 SELECT id, name, price_in_cents, quantity, created_at FROM products WHERE id = ANY($1::uuid[])
 `

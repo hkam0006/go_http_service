@@ -11,6 +11,7 @@ type Service interface {
 	CreateOrder (context context.Context, user_id pgtype.UUID) (repo.Order, error)
 	CreateOrderItems (context context.Context, params repo.CreateOrderItemsParams) ([]repo.OrderItem, error)
 	GetProductsByIds (context context.Context, product_ids []pgtype.UUID) ([]repo.Product, error)
+	GetOrderById (context context.Context, order_id pgtype.UUID) (repo.GetOrderByIdRow, error)
 }
 
 type svc struct {
@@ -27,6 +28,10 @@ func (s *svc) CreateOrderItems (context context.Context, params repo.CreateOrder
 
 func (s *svc) GetProductsByIds (context context.Context, product_ids []pgtype.UUID) ([]repo.Product, error) {
 	return s.repo.GetProductsByIds(context, product_ids)
+}
+
+func (s *svc) GetOrderById (context context.Context, order_id pgtype.UUID) (repo.GetOrderByIdRow, error) {
+	return s.repo.GetOrderById(context, order_id)
 }
 
 func NewService(repo repo.Querier) Service {

@@ -11,6 +11,7 @@ func NewRouter(db repo.DBTX) chi.Router {
 	s := NewService(repo.New(db))
 	h := NewHandler(s)
 
+	r.Get("/{order_id}", h.GetOrderById)
 	r.Post("/", h.CreateOrder)
 
 	return r

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	repo "github.com/hkam0006/ecom-server/internal/adapters/postgresql/sqlc"
 	json_utils "github.com/hkam0006/ecom-server/internal/json"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -98,6 +99,27 @@ func (h *handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json_utils.Write(w, http.StatusCreated, res)
+}
+
+func (h *handler) GetOrderById(w http.ResponseWriter, r *http.Request) {
+	order_id := chi.URLParam(r, "order_id")
+
+	var order_uuid pgtype.UUID
+
+	if err := order_uuid.Scan(order_id); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	order, err := h.service.GetOrderById(r.Context(), order_uuid)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json_utils.Write(w, http.StatusOK, order)
 }
 
 
