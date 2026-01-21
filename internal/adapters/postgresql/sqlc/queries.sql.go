@@ -51,6 +51,48 @@ func (q *Queries) AddUser(ctx context.Context, arg AddUserParams) (User, error) 
 	return i, err
 }
 
+const createOrderItems = `-- name: CreateOrderItems :many
+INSERT INTO order_items (order_id, product_id, quantity, price_in_cents)
+SELECT
+  $1::uuid,
+  (x->>'product_id')::uuid,
+  (x->>'quantity')::int,
+  (x->>'price_in_cents')::int
+FROM jsonb_array_elements($2::jsonb) AS x
+RETURNING id, order_id, product_id, quantity, price_in_cents
+`
+
+type CreateOrderItemsParams struct {
+	Column1 pgtype.UUID `json:"column_1"`
+	Column2 []byte      `json:"column_2"`
+}
+
+func (q *Queries) CreateOrderItems(ctx context.Context, arg CreateOrderItemsParams) ([]OrderItem, error) {
+	rows, err := q.db.Query(ctx, createOrderItems, arg.Column1, arg.Column2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrderItem
+	for rows.Next() {
+		var i OrderItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrderID,
+			&i.ProductID,
+			&i.Quantity,
+			&i.PriceInCents,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (
     name,
@@ -155,4 +197,20 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const placeOrder = `-- name: PlaceOrder :one
+INSERT INTO orders (user_id) VALUES ($1) RETURNING id, user_id, status, created_at
+`
+
+func (q *Queries) PlaceOrder(ctx context.Context, userID pgtype.UUID) (Order, error) {
+	row := q.db.QueryRow(ctx, placeOrder, userID)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
 }

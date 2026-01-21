@@ -16,10 +16,11 @@ type Order struct {
 }
 
 type OrderItem struct {
-	ID        pgtype.UUID `json:"id"`
-	OrderID   pgtype.UUID `json:"order_id"`
-	ProductID pgtype.UUID `json:"product_id"`
-	Quantity  int32       `json:"quantity"`
+	ID           pgtype.UUID `json:"id"`
+	OrderID      pgtype.UUID `json:"order_id"`
+	ProductID    pgtype.UUID `json:"product_id"`
+	Quantity     int32       `json:"quantity"`
+	PriceInCents int32       `json:"price_in_cents"`
 }
 
 type Product struct {
