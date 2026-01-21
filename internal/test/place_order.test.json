@@ -1,0 +1,18 @@
+{
+  "user_id": "dd8edf9a-a8fa-44d5-bd18-a922121a9e75",
+  "products": [
+    {
+      "product_id": "0d6ed552-9e36-4861-a819-08cf03901c47",
+      "quantity": 1
+    },
+    {
+      "product_id": "42eebda6-0dbc-4e25-b1e3-17c09eee1bf5",
+      "quantity": 1
+    },
+    {
+      "product_id": "00c73160-6793-4aa9-9cca-5b532df3a42f",
+      "quantity": 1
+    }
+  ],
+  "discount_code": "TEST_123"
+}

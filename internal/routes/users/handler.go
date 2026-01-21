@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	repo "github.com/hkam0006/ecom-server/internal/adapters/postgresql/sqlc"
-	"github.com/hkam0006/ecom-server/internal/json"
+	json_utils "github.com/hkam0006/ecom-server/internal/json"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,7 +49,7 @@ func (h *handler) AddUser (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.Write(w, http.StatusCreated, user)
+	json_utils.Write(w, http.StatusCreated, user)
 }
 
 func (h *handler) DeleteUser (w http.ResponseWriter, r *http.Request) {
@@ -71,5 +71,5 @@ func (h *handler) DeleteUser (w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.Write(w, http.StatusOK, id)
+	json_utils.Write(w, http.StatusOK, id)
 }

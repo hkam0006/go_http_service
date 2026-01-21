@@ -52,14 +52,14 @@ func (q *Queries) AddUser(ctx context.Context, arg AddUserParams) (User, error) 
 }
 
 const createOrderItems = `-- name: CreateOrderItems :many
-INSERT INTO order_items (order_id, product_id, quantity, price_in_cents)
+INSERT INTO order_items (order_id, product_id, quantity, price_per_product_in_cents)
 SELECT
   $1::uuid,
   (x->>'product_id')::uuid,
   (x->>'quantity')::int,
-  (x->>'price_in_cents')::int
+  (x->>'price_per_product_in_cents')::int
 FROM jsonb_array_elements($2::jsonb) AS x
-RETURNING id, order_id, product_id, quantity, price_in_cents
+RETURNING id, order_id, product_id, quantity, price_per_product_in_cents
 `
 
 type CreateOrderItemsParams struct {
@@ -81,7 +81,7 @@ func (q *Queries) CreateOrderItems(ctx context.Context, arg CreateOrderItemsPara
 			&i.OrderID,
 			&i.ProductID,
 			&i.Quantity,
-			&i.PriceInCents,
+			&i.PricePerProductInCents,
 		); err != nil {
 			return nil, err
 		}
@@ -164,6 +164,36 @@ func (q *Queries) FindProductsByID(ctx context.Context, id pgtype.UUID) (Product
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getProductsByIds = `-- name: GetProductsByIds :many
+SELECT id, name, price_in_cents, quantity, created_at FROM products WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetProductsByIds(ctx context.Context, dollar_1 []pgtype.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByIds, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.PriceInCents,
+			&i.Quantity,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listProducts = `-- name: ListProducts :many
